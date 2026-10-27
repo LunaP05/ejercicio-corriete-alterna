@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ejercicio - Circuitos de CA</title>
+  <style>
+    :root {
+      --primary: #041c00;
+      --secondary: #287840;
+      --accent: #94c124;
+      --bg: #f8fafc;
+      --white: #ffffff;
+      --border: #cbd5e1;
+      --correct: #16a34a;
+      --incorrect: #dc2626;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: #1e293b;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .app-card {
+      background: var(--white);
+      width: 100%;
+      max-width: 860px;
+      height: 95vh;
+      max-height: 660px;
+      border-radius: 12px;
+      border: 2px solid var(--primary);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sticky-header {
+      background: var(--white);
+      border-bottom: 2px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .header-top {
+      background-color: var(--primary);
+      color: var(--white);
+      padding: 10px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-top h1 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    .score-badge {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid var(--accent);
+      padding: 3px 12px;
+      border-radius: 20px;
+      text-align: right;
+    }
+
+    .score-badge .label {
+      font-size: 0.6rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      font-weight: 700;
+      display: block;
+    }
+
+    .score-badge .val {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--white);
+    }
+
+    .instruction {
+      padding: 8px 16px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #0f172a;
+      background: #f1f5f9;
+      border-bottom: 1px solid var(--border);
+      line-height: 1.35;
+    }
+
+    .instruction-list {
+      margin-top: 3px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .symbols-bar {
+      display: flex;
+      gap: 6px;
+      padding: 6px 16px;
+      background: #ffffff;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sym-btn {
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      color: var(--primary);
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-size: 0.8rem;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .sym-btn:hover {
+      background: var(--secondary);
+      color: var(--white);
+      border-color: var(--secondary);
+    }
+
+    .tabs-nav {
+      display: flex;
+      background: #e2e8f0;
+      border-bottom: 2px solid var(--border);
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 8px 10px;
+      background: transparent;
+      border: none;
+      font-weight: 700;
+      font-size: 0.82rem;
+      color: #475569;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: var(--white);
+      color: var(--secondary);
+      border-bottom: 3px solid var(--secondary);
+    }
+
+    .content-area {
+      padding: 16px;
+      overflow-y: auto;
+      flex-grow: 1;
+      background: #ffffff;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .grid-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .input-group label {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: var(--primary);
+    }
+
+    .input-field-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-field-wrapper input {
+      width: 100%;
+      padding: 7px 30px 7px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-field-wrapper input:focus {
+      border-color: var(--secondary);
+    }
+
+    .status-icon {
+      position: absolute;
+      right: 10px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      display: none;
+    }
+
+    .input-field-wrapper.correct input {
+      border-color: var(--correct);
+      background-color: #f0fdf4;
+    }
+    .input-field-wrapper.correct .status-icon {
+      color: var(--correct);
+      display: block;
+    }
+    .input-field-wrapper.correct .status-icon::after {
+      content: "✔";
+    }
+
+    .input-field-wrapper.incorrect input {
+      border-color: var(--incorrect);
+      background-color: #fef2f2;
+    }
+    .input-field-wrapper.incorrect .status-icon {
+      color: var(--incorrect);
+      display: block;
+    }
+    .input-field-wrapper.incorrect .status-icon::after {
+      content: "✖";
+    }
+
+    .footer-actions {
+      padding: 10px 16px;
+      background: #f8fafc;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    .btn-action {
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-reset {
+      background: #e2e8f0;
+      color: #334155;
+    }
+    .btn-reset:hover {
+      background: #cbd5e1;
+    }
+
+    .btn-verify {
+      background: var(--secondary);
+      color: var(--white);
+    }
+    .btn-verify:hover {
+      background: #1e5c31;
+    }
+  </style>
+</head>
+<body>
+
+<div class="app-card">
+  <div class="sticky-header">
+    <div class="header-top">
+      <h1>Ejercicio</h1>
+      <div class="score-badge">
+        <span class="label">TOTAL</span>
+        <span class="val" id="scoreDisplay">0.0 / 5.0</span>
+      </div>
+    </div>
+    
+    <div class="instruction">
+      Para el circuito de la figura:
+      <div class="instruction-list">
+        <div><b>a.</b> Encuentre el valor de C en microfarads y el de L en henrys</div>
+        <div><b>b.</b> Encuentre el voltaje E y las corrientes IR, IL e IC en forma fasorial</div>
+        <div><b>c.</b> Encuentre la potencia promedio entregada al circuito</div>
+        <div><b>d.</b> Encuentre el factor de potencia del circuito, e indique si está adelantado o atrasado</div>
+        <div><b>e.</b> Encuentre las expresiones senoidales para las corrientes y el voltaje</div>
+      </div>
+    </div>
+
+    <div class="symbols-bar">
+      <button class="sym-btn" onclick="insertSymbol('°')">°</button>
+      <button class="sym-btn" onclick="insertSymbol('∠')">∠</button>
+      <button class="sym-btn" onclick="insertSymbol('μF')">μF</button>
+      <button class="sym-btn" onclick="insertSymbol('mH')">mH</button>
+      <button class="sym-btn" onclick="insertSymbol('W')">W</button>
+      <button class="sym-btn" onclick="insertSymbol('V')">V</button>
+      <button class="sym-btn" onclick="insertSymbol('A')">A</button>
+    </div>
+
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('a', event)">a. C y L</button>
+      <button class="tab-btn" onclick="switchTab('b', event)">b. Fasores</button>
+      <button class="tab-btn" onclick="switchTab('c', event)">c. Potencia</button>
+      <button class="tab-btn" onclick="switchTab('d', event)">d. Factor Potencia</button>
+      <button class="tab-btn" onclick="switchTab('e', event)">e. Senoidales</button>
+    </div>
+  </div>
+
+  <div class="content-area">
+    <!-- Inciso A -->
+    <div id="tab-a" class="tab-content active">
+      <div class="grid-form">
+        <div class="input-group">
+          <label><i>C</i></label>
+          <div class="input-field-wrapper">
+            <input type="text" id="c_val" data-answers="530.5 μf,530.5μf,530.5">
+            <span class="status-icon"></span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label><i>L</i></label>
+          <div class="input-field-wrapper">
+            <input type="text" id="l_val" data-answers="5.3 mh,5.3mh,5.3">
+            <span class="status-icon"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inciso B -->
+    <div id="tab-b" class="tab-content">
+      <div class="grid-form">
+        <div class="input-group">
+          <label><i>E</i></label>
+          <div class="input-field-wrapper">
+            <input type="text" id="e_val" data-answers="2.4v∠79.8°,2.4v∠79.8,2.4v∠79.8º,2.4v79.8°">
+            <span class="status-icon"></span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label><i>I</i><sub>R</sub></label>
+          <div class="input-field-wrapper">
+            <input type="text" id="ir_val" data-answers="2a∠79.8°,2a∠79.8,2a∠79.8º,2a79.8°">
+            <span class="status-icon"></span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label><i>I</i><sub>L</sub></label>
+          <div class="input-field-wrapper">
+            <input type="text" id="il_val" data-answers="1.2a∠-10.2°,1.2a∠-10.2,1.2a∠-10.2º,1.2a-10.2°">
+            <span class="status-icon"></span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label><i>I</i><sub>C</sub></label>
+          <div class="input-field-wrapper">
+            <input type="text" id="ic_val" data-answers="0.48a∠169.8°,0.48a∠169.8,0.48a∠169.8º,0.48a169.8°">
+            <span class="status-icon"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inciso C -->
+    <div id="tab-c" class="tab-content">
+      <div class="grid-form">
+        <div class="input-group">
+          <label><i>P</i></label>
+          <div class="input-field-wrapper">
+            <input type="text" id="p_val" data-answers="4.8 w,4.8w,4.8">
+            <span class="status-icon"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inciso D -->
+    <div id="tab-d" class="tab-content">
+      <div class="grid-form">
+        <div class="input-group">
+          <label><i>F</i><sub>p</sub> (Estado)</label>
+          <div class="input-field-wrapper">
+            <input type="text" id="fp_val" data-answers="0.941(enatrasado),0.941 en atraso,0.941atrasado,0.941">
+            <span class="status-icon"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inciso E -->
+    <div id="tab-e" class="tab-content">
+      <div class="grid-form">
+        <div class="input-group">
+          <label><i>e(t)</i></label>
+          <div class="input-field-wrapper">
+            <input type="text" id="et_val" data-answers="3.39sen(ωt+79.8°),3.39sen(wt+79.8°),3.39sen(ωt+79.8),3.39sen(wt+79.8)">
+            <span class="status-icon"></span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label><i>i</i><sub>R</sub><i>(t)</i></label>
+          <div class="input-field-wrapper">
+            <input type="text" id="irt_val" data-answers="2.83sen(ωt+79.8°),2.83sen(wt+79.8°),2.83sen(ωt+79.8),2.83sen(wt+79.8)">
+            <span class="status-icon"></span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label><i>i</i><sub>L</sub><i>(t)</i></label>
+          <div class="input-field-wrapper">
+            <input type="text" id="ilt_val" data-answers="1.7sen(ωt-10.2°),1.7sen(wt-10.2°),1.7sen(ωt-10.2),1.7sen(wt-10.2)">
+            <span class="status-icon"></span>
+          </div>
+        </div>
+        <div class="input-group">
+          <label><i>i</i><sub>C</sub><i>(t)</i></label>
+          <div class="input-field-wrapper">
+            <input type="text" id="ict_val" data-answers="0.68sen(ωt+169.8°),0.68sen(wt+169.8°),0.68sen(ωt+169.8),0.68sen(wt+169.8)">
+            <span class="status-icon"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-actions">
+    <button class="btn-action btn-reset" onclick="resetQuiz()">⟳ Reiniciar</button>
+    <button class="btn-action btn-verify" onclick="evaluateQuiz()">✔ Verificar Respuestas</button>
+  </div>
+</div>
+
+<script>
+  let activeInput = null;
+
+  document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('focus', () => { activeInput = input; });
+  });
+
+  function insertSymbol(sym) {
+    if (activeInput) {
+      const start = activeInput.selectionStart;
+      const end = activeInput.selectionEnd;
+      const val = activeInput.value;
+      activeInput.value = val.substring(0, start) + sym + val.substring(end);
+      activeInput.focus();
+      activeInput.setSelectionRange(start + sym.length, start + sym.length);
+    }
+  }
+
+  function switchTab(tabKey, event) {
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+    
+    event.target.classList.add('active');
+    document.getElementById(`tab-${tabKey}`).classList.add('active');
+  }
+
+  function evaluateQuiz() {
+    const inputs = document.querySelectorAll('input[data-answers]');
+    let correctCount = 0;
+    const totalInputs = inputs.length;
+
+    inputs.forEach(input => {
+      const parent = input.parentElement;
+      const userVal = input.value.trim().toLowerCase().replace(/\s+/g, '');
+      const validAnswers = input.dataset.answers.split(',').map(a => a.trim().toLowerCase().replace(/\s+/g, ''));
+
+      if (userVal !== "" && validAnswers.includes(userVal)) {
+        parent.classList.add('correct');
+        parent.classList.remove('incorrect');
+        correctCount++;
+      } else if (userVal !== "") {
+        parent.classList.add('incorrect');
+        parent.classList.remove('correct');
+      } else {
+        parent.classList.remove('correct', 'incorrect');
+      }
+    });
+
+    const finalScore = ((correctCount / totalInputs) * 5.0).toFixed(1);
+    document.getElementById('scoreDisplay').innerText = `${finalScore} / 5.0`;
+  }
+
+  function resetQuiz() {
+    document.querySelectorAll('input[data-answers]').forEach(input => {
+      input.value = "";
+      input.parentElement.classList.remove('correct', 'incorrect');
+    });
+    document.getElementById('scoreDisplay').innerText = "0.0 / 5.0";
+  }
+</script>
+
+</body>
+</html>
